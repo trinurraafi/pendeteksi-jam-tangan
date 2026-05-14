@@ -6,7 +6,7 @@ const CONFIG = {
     modelPath: './best.onnx',
 
     // Nama kelas (HARUS sama urutannya dengan Roboflow)
-    labels: ["Jam_Analog", "Smartwatch"],
+    labels: ["Smartwatch", "Jam_Analog"],
 
     // Tingkat keyakinan AI
     threshold: 0.45,
