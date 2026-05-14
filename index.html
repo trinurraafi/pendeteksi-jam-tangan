@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AI Deteksi Jam</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Watch Detector</title>
 
     <!-- ONNX Runtime -->
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
 
     <!-- Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
+
         *{
             margin:0;
             padding:0;
@@ -19,103 +21,137 @@
         }
 
         body{
-            font-family:'Poppins',sans-serif;
             min-height:100vh;
+            font-family:'Poppins',sans-serif;
             background:
-                radial-gradient(circle at top left, #1f3b73 0%, transparent 30%),
-                radial-gradient(circle at bottom right, #7b2cbf 0%, transparent 30%),
-                #0f172a;
-            color:white;
+                linear-gradient(135deg,#020617,#0f172a,#111827);
+            overflow:hidden;
             display:flex;
             justify-content:center;
             align-items:center;
-            padding:30px;
-            overflow:hidden;
+            padding:25px;
+            color:white;
         }
 
-        .bg-blur{
+        /* Background Glow */
+
+        .glow1,
+        .glow2{
             position:absolute;
-            width:300px;
-            height:300px;
-            background:#3b82f6;
-            filter:blur(120px);
-            opacity:0.25;
-            top:-100px;
-            left:-100px;
             border-radius:50%;
+            filter:blur(120px);
+            opacity:0.4;
         }
 
-        .bg-blur2{
-            position:absolute;
-            width:300px;
-            height:300px;
+        .glow1{
+            width:350px;
+            height:350px;
+            background:#2563eb;
+            top:-120px;
+            left:-120px;
+        }
+
+        .glow2{
+            width:350px;
+            height:350px;
             background:#9333ea;
-            filter:blur(120px);
-            opacity:0.25;
-            bottom:-100px;
-            right:-100px;
-            border-radius:50%;
+            bottom:-120px;
+            right:-120px;
         }
 
-        .main-card{
+        /* Main Box */
+
+        .card{
             position:relative;
-            width:720px;
+            width:760px;
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.08);
+            border-radius:30px;
+            backdrop-filter:blur(20px);
+            overflow:hidden;
+            box-shadow:
+                0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        /* Top Header */
+
+        .top-header{
+            padding:30px;
+            text-align:center;
+            border-bottom:1px solid rgba(255,255,255,0.08);
+            background:
+                linear-gradient(to right,
+                rgba(37,99,235,0.15),
+                rgba(147,51,234,0.15));
+        }
+
+        .badge{
+            display:inline-block;
+            padding:8px 18px;
+            border-radius:999px;
             background:rgba(255,255,255,0.08);
             border:1px solid rgba(255,255,255,0.15);
-            backdrop-filter:blur(20px);
-            border-radius:28px;
-            padding:25px;
-            box-shadow:0 10px 40px rgba(0,0,0,0.5);
+            font-size:0.8rem;
+            letter-spacing:2px;
+            margin-bottom:18px;
+            color:#93c5fd;
         }
 
-        .header{
-            text-align:center;
-            margin-bottom:20px;
-        }
-
-        .header h1{
-            font-size:2rem;
+        .title{
+            font-family:'Orbitron',sans-serif;
+            font-size:2.5rem;
             font-weight:700;
             background:linear-gradient(to right,#60a5fa,#c084fc);
             -webkit-background-clip:text;
             -webkit-text-fill-color:transparent;
+            margin-bottom:12px;
         }
 
-        .header p{
+        .subtitle{
             color:#cbd5e1;
-            margin-top:8px;
-            font-size:0.95rem;
+            font-size:1rem;
+            line-height:1.7;
+            max-width:550px;
+            margin:auto;
         }
 
-        .status-box{
-            margin:20px 0;
-            background:rgba(255,255,255,0.08);
-            border:1px solid rgba(255,255,255,0.12);
-            padding:14px;
-            border-radius:15px;
-            text-align:center;
-            font-weight:600;
-            color:#38bdf8;
+        .creator{
+            margin-top:20px;
+            color:#94a3b8;
+            font-size:0.9rem;
             letter-spacing:1px;
         }
 
-        .container{
+        .creator span{
+            color:#ffffff;
+            font-weight:700;
+        }
+
+        /* Video Area */
+
+        .camera-section{
+            padding:25px;
+        }
+
+        .video-box{
             position:relative;
             width:100%;
             height:500px;
-            border-radius:22px;
+            border-radius:25px;
             overflow:hidden;
-            border:2px solid rgba(255,255,255,0.1);
+            border:2px solid rgba(255,255,255,0.08);
             background:black;
+            box-shadow:
+                inset 0 0 30px rgba(255,255,255,0.05);
         }
 
         video,
         canvas#overlay{
             position:absolute;
-            top:0;
-            left:0;
             width:100%;
             height:100%;
+            top:0;
+            left:0;
         }
 
         canvas#overlay{
@@ -123,66 +159,28 @@
             pointer-events:none;
         }
 
-        .button-area{
-            margin-top:25px;
-            display:flex;
-            justify-content:center;
-        }
+        /* Status */
 
-        .btn-start{
-            padding:15px 35px;
-            border:none;
-            border-radius:16px;
-            font-size:1rem;
-            font-weight:600;
-            cursor:pointer;
-            color:white;
-            background:linear-gradient(135deg,#3b82f6,#8b5cf6);
-            transition:0.3s;
-            box-shadow:0 8px 25px rgba(59,130,246,0.4);
-        }
-
-        .btn-start:hover{
-            transform:translateY(-3px) scale(1.03);
-            box-shadow:0 12px 30px rgba(139,92,246,0.5);
-        }
-
-        .info-box{
-            display:flex;
-            justify-content:space-between;
-            gap:15px;
-            margin-top:20px;
-            flex-wrap:wrap;
-        }
-
-        .info-card{
-            flex:1;
-            min-width:180px;
-            background:rgba(255,255,255,0.06);
-            border:1px solid rgba(255,255,255,0.1);
-            padding:18px;
+        .status-bar{
+            margin-top:18px;
+            background:rgba(255,255,255,0.05);
+            border:1px solid rgba(255,255,255,0.08);
+            padding:16px;
             border-radius:18px;
-            text-align:center;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;
+            font-weight:600;
+            color:#38bdf8;
+            letter-spacing:1px;
         }
 
-        .info-card h3{
-            font-size:1rem;
-            margin-bottom:8px;
-            color:#93c5fd;
-        }
-
-        .info-card p{
-            color:#e2e8f0;
-            font-size:0.9rem;
-        }
-
-        .live-dot{
-            display:inline-block;
-            width:10px;
-            height:10px;
-            background:#22c55e;
+        .dot{
+            width:12px;
+            height:12px;
             border-radius:50%;
-            margin-right:8px;
+            background:#22c55e;
             animation:pulse 1s infinite;
         }
 
@@ -192,7 +190,7 @@
                 opacity:1;
             }
             50%{
-                transform:scale(1.5);
+                transform:scale(1.6);
                 opacity:0.5;
             }
             100%{
@@ -201,81 +199,172 @@
             }
         }
 
+        /* Button */
+
+        .btn-area{
+            margin-top:25px;
+            display:flex;
+            justify-content:center;
+        }
+
+        .btn-start{
+            border:none;
+            padding:16px 38px;
+            border-radius:18px;
+            font-size:1rem;
+            font-weight:700;
+            cursor:pointer;
+            color:white;
+            background:
+                linear-gradient(135deg,#2563eb,#9333ea);
+            transition:0.3s;
+            box-shadow:
+                0 10px 30px rgba(99,102,241,0.4);
+        }
+
+        .btn-start:hover{
+            transform:translateY(-4px) scale(1.03);
+            box-shadow:
+                0 15px 35px rgba(147,51,234,0.5);
+        }
+
+        /* Footer Cards */
+
+        .features{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:15px;
+            margin-top:25px;
+        }
+
+        .feature{
+            background:rgba(255,255,255,0.05);
+            border:1px solid rgba(255,255,255,0.08);
+            border-radius:20px;
+            padding:20px;
+            text-align:center;
+        }
+
+        .feature h3{
+            margin-top:10px;
+            font-size:1rem;
+            color:#93c5fd;
+        }
+
+        .feature p{
+            margin-top:8px;
+            color:#cbd5e1;
+            font-size:0.9rem;
+            line-height:1.6;
+        }
+
+        /* Mobile */
+
         @media(max-width:768px){
 
-            .main-card{
+            .card{
                 width:100%;
-                padding:18px;
             }
 
-            .container{
-                height:380px;
+            .title{
+                font-size:1.8rem;
             }
 
-            .header h1{
-                font-size:1.5rem;
+            .video-box{
+                height:350px;
+            }
+
+            .features{
+                grid-template-columns:1fr;
             }
         }
+
     </style>
 </head>
 <body>
 
-    <div class="bg-blur"></div>
-    <div class="bg-blur2"></div>
+    <div class="glow1"></div>
+    <div class="glow2"></div>
 
-    <div class="main-card">
+    <div class="card">
 
-        <div class="header">
-    <h1>⌚ AI Watch Detector</h1>
+        <!-- Header -->
+        <div class="top-header">
 
-    <p>
-        Sistem Deteksi Otomatis 
-        Jam Analog & Smartwatch
-    </p>
-
-    <p style="
-        margin-top:10px;
-        color:#94a3b8;
-        font-size:0.9rem;
-        letter-spacing:1px;
-    ">
-        Dibuat oleh <b>Tri Nur Raafi</b>
-    </p>
-</div>
-
-        <div id="status" class="status-box">
-            STATUS: BELUM AKTIF
-        </div>
-
-        <div class="container">
-            <video id="webcam" playsinline muted autoplay></video>
-            <canvas id="overlay" width="640" height="480"></canvas>
-        </div>
-
-        <div class="button-area">
-            <button id="btn-init" class="btn-start">
-                🎥 AKTIFKAN KAMERA
-            </button>
-        </div>
-
-        <div class="info-box">
-
-            <div class="info-card">
-                <h3>📡 Status AI</h3>
-                <p>
-                    <span class="live-dot"></span>
-                    Real-Time Detection
-                </p>
+            <div class="badge">
+                AI WATCH DETECTION
             </div>
 
-            <div class="info-card">
-                <h3>⌚ Objek</h3>
-                <p>Jam Analog & Smartwatch</p>
+            <h1 class="title">
+                ⌚ SMART WATCH SCANNER
+            </h1>
+
+            <p class="subtitle">
+                Sistem AI modern untuk mendeteksi 
+                Jam Analog dan Smartwatch secara otomatis 
+                menggunakan kamera real-time.
+            </p>
+
+            <div class="creator">
+                Created By <span>Tri Nur Raafi</span>
             </div>
 
-            <div class="info-card">
-                <h3>⚡ Teknologi</h3>
-                <p>ONNX Runtime Web AI</p>
+        </div>
+
+        <!-- Camera -->
+        <div class="camera-section">
+
+            <div class="video-box">
+
+                <video id="webcam" playsinline muted autoplay></video>
+
+                <canvas id="overlay" width="640" height="480"></canvas>
+
+            </div>
+
+            <!-- Status -->
+            <div id="status" class="status-bar">
+                <div class="dot"></div>
+                STATUS : MENUNGGU AKTIVASI
+            </div>
+
+            <!-- Button -->
+            <div class="btn-area">
+                <button id="btn-init" class="btn-start">
+                    🎥 AKTIFKAN KAMERA
+                </button>
+            </div>
+
+            <!-- Features -->
+            <div class="features">
+
+                <div class="feature">
+                    <div style="font-size:2rem;">🤖</div>
+                    <h3>AI Detection</h3>
+                    <p>
+                        Menggunakan Artificial Intelligence
+                        untuk mendeteksi objek jam.
+                    </p>
+                </div>
+
+                <div class="feature">
+                    <div style="font-size:2rem;">⚡</div>
+                    <h3>Real-Time</h3>
+                    <p>
+                        Deteksi langsung dari kamera
+                        dengan kecepatan tinggi.
+                    </p>
+                </div>
+
+                <div class="feature">
+                    <div style="font-size:2rem;">⌚</div>
+                    <h3>2 Jenis Jam</h3>
+                    <p>
+                        Mendeteksi Jam Analog
+                        dan Smartwatch otomatis.
+                    </p>
+                </div>
+
             </div>
 
         </div>
