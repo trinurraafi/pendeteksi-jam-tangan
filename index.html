@@ -3,379 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>AI Watch Detector</title>
-
-    <!-- ONNX Runtime -->
+    <title>Deployment AI Siswa</title>
+    
+    <!-- Memuat mesin AI (ONNX Runtime Web) agar model bisa berjalan langsung di browser[cite: 2] -->
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
-
-    <!-- Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+    
     <style>
-
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-        }
-
-        body{
-            min-height:100vh;
-            font-family:'Poppins',sans-serif;
-            background:
-                linear-gradient(135deg,#020617,#0f172a,#111827);
-            overflow:hidden;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            padding:25px;
-            color:white;
-        }
-
-        /* Background Glow */
-
-        .glow1,
-        .glow2{
-            position:absolute;
-            border-radius:50%;
-            filter:blur(120px);
-            opacity:0.4;
-        }
-
-        .glow1{
-            width:350px;
-            height:350px;
-            background:#2563eb;
-            top:-120px;
-            left:-120px;
-        }
-
-        .glow2{
-            width:350px;
-            height:350px;
-            background:#9333ea;
-            bottom:-120px;
-            right:-120px;
-        }
-
-        /* Main Box */
-
-        .card{
-            position:relative;
-            width:760px;
-            background:rgba(255,255,255,0.06);
-            border:1px solid rgba(255,255,255,0.08);
-            border-radius:30px;
-            backdrop-filter:blur(20px);
-            overflow:hidden;
-            box-shadow:
-                0 10px 40px rgba(0,0,0,0.5);
-        }
-
-        /* Top Header */
-
-        .top-header{
-            padding:30px;
-            text-align:center;
-            border-bottom:1px solid rgba(255,255,255,0.08);
-            background:
-                linear-gradient(to right,
-                rgba(37,99,235,0.15),
-                rgba(147,51,234,0.15));
-        }
-
-        .badge{
-            display:inline-block;
-            padding:8px 18px;
-            border-radius:999px;
-            background:rgba(255,255,255,0.08);
-            border:1px solid rgba(255,255,255,0.15);
-            font-size:0.8rem;
-            letter-spacing:2px;
-            margin-bottom:18px;
-            color:#93c5fd;
-        }
-
-        .title{
-            font-family:'Orbitron',sans-serif;
-            font-size:2.5rem;
-            font-weight:700;
-            background:linear-gradient(to right,#60a5fa,#c084fc);
-            -webkit-background-clip:text;
-            -webkit-text-fill-color:transparent;
-            margin-bottom:12px;
-        }
-
-        .subtitle{
-            color:#cbd5e1;
-            font-size:1rem;
-            line-height:1.7;
-            max-width:550px;
-            margin:auto;
-        }
-
-        .creator{
-            margin-top:20px;
-            color:#94a3b8;
-            font-size:0.9rem;
-            letter-spacing:1px;
-        }
-
-        .creator span{
-            color:#ffffff;
-            font-weight:700;
-        }
-
-        /* Video Area */
-
-        .camera-section{
-            padding:25px;
-        }
-
-        .video-box{
-            position:relative;
-            width:100%;
-            height:500px;
-            border-radius:25px;
-            overflow:hidden;
-            border:2px solid rgba(255,255,255,0.08);
-            background:black;
-            box-shadow:
-                inset 0 0 30px rgba(255,255,255,0.05);
-        }
-
-        video,
-        canvas#overlay{
-            position:absolute;
-            width:100%;
-            height:100%;
-            top:0;
-            left:0;
-        }
-
-        canvas#overlay{
-            z-index:10;
-            pointer-events:none;
-        }
-
-        /* Status */
-
-        .status-bar{
-            margin-top:18px;
-            background:rgba(255,255,255,0.05);
-            border:1px solid rgba(255,255,255,0.08);
-            padding:16px;
-            border-radius:18px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            gap:10px;
-            font-weight:600;
-            color:#38bdf8;
-            letter-spacing:1px;
-        }
-
-        .dot{
-            width:12px;
-            height:12px;
-            border-radius:50%;
-            background:#22c55e;
-            animation:pulse 1s infinite;
-        }
-
-        @keyframes pulse{
-            0%{
-                transform:scale(1);
-                opacity:1;
-            }
-            50%{
-                transform:scale(1.6);
-                opacity:0.5;
-            }
-            100%{
-                transform:scale(1);
-                opacity:1;
-            }
-        }
-
-        /* Button */
-
-        .btn-area{
-            margin-top:25px;
-            display:flex;
-            justify-content:center;
-        }
-
-        .btn-start{
-            border:none;
-            padding:16px 38px;
-            border-radius:18px;
-            font-size:1rem;
-            font-weight:700;
-            cursor:pointer;
-            color:white;
-            background:
-                linear-gradient(135deg,#2563eb,#9333ea);
-            transition:0.3s;
-            box-shadow:
-                0 10px 30px rgba(99,102,241,0.4);
-        }
-
-        .btn-start:hover{
-            transform:translateY(-4px) scale(1.03);
-            box-shadow:
-                0 15px 35px rgba(147,51,234,0.5);
-        }
-
-        /* Footer Cards */
-
-        .features{
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:15px;
-            margin-top:25px;
-        }
-
-        .feature{
-            background:rgba(255,255,255,0.05);
-            border:1px solid rgba(255,255,255,0.08);
-            border-radius:20px;
-            padding:20px;
-            text-align:center;
-        }
-
-        .feature h3{
-            margin-top:10px;
-            font-size:1rem;
-            color:#93c5fd;
-        }
-
-        .feature p{
-            margin-top:8px;
-            color:#cbd5e1;
-            font-size:0.9rem;
-            line-height:1.6;
-        }
-
-        /* Mobile */
-
-        @media(max-width:768px){
-
-            .card{
-                width:100%;
-            }
-
-            .title{
-                font-size:1.8rem;
-            }
-
-            .video-box{
-                height:350px;
-            }
-
-            .features{
-                grid-template-columns:1fr;
-            }
-        }
-
+        body { background-color: #121212; color: white; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { position: relative; width: 640px; height: 480px; border: 2px solid #555; border-radius: 10px; overflow: hidden; }
+        video, canvas#overlay { position: absolute; top: 0; left: 0; width: 640px; height: 480px; }
+        canvas#overlay { z-index: 10; pointer-events: none; }
+        #status { margin: 15px; padding: 10px; border-radius: 5px; background: #1e1e1e; border: 1px solid #444; width: 600px; text-align: center; }
+        .btn-start { padding: 12px 30px; font-size: 1.1rem; cursor: pointer; background: #FF3B30; color: white; border: none; border-radius: 5px; font-weight: bold; }
+        .btn-start:hover { background: #cc2f26; }
     </style>
 </head>
 <body>
 
-    <div class="glow1"></div>
-    <div class="glow2"></div>
+    <!-- GANTI BAGIAN INI dengan judul proyek kalian -->
+    <h1>🛡️ Proyek AI: Deteksi Otomatis</h1>
+    <p>Dibuat oleh: [Nama Kalian]</p>
+    
+    <button id="btn-init" class="btn-start">AKTIFKAN KAMERA</button>
+    <div id="status">STATUS: MATI</div>
 
-    <div class="card">
-
-        <!-- Header -->
-        <div class="top-header">
-
-            <div class="badge">
-                AI WATCH DETECTION
-            </div>
-
-            <h1 class="title">
-                ⌚ SMART WATCH SCANNER
-            </h1>
-
-            <p class="subtitle">
-                Sistem AI modern untuk mendeteksi 
-                Jam Analog dan Smartwatch secara otomatis 
-                menggunakan kamera real-time.
-            </p>
-
-            <div class="creator">
-                Created By <span>Tri Nur Raafi</span>
-            </div>
-
-        </div>
-
-        <!-- Camera -->
-        <div class="camera-section">
-
-            <div class="video-box">
-
-                <video id="webcam" playsinline muted autoplay></video>
-
-                <canvas id="overlay" width="640" height="480"></canvas>
-
-            </div>
-
-            <!-- Status -->
-            <div id="status" class="status-bar">
-                <div class="dot"></div>
-                STATUS : MENUNGGU AKTIVASI
-            </div>
-
-            <!-- Button -->
-            <div class="btn-area">
-                <button id="btn-init" class="btn-start">
-                    🎥 AKTIFKAN KAMERA
-                </button>
-            </div>
-
-            <!-- Features -->
-            <div class="features">
-
-                <div class="feature">
-                    <div style="font-size:2rem;">🤖</div>
-                    <h3>AI Detection</h3>
-                    <p>
-                        Menggunakan Artificial Intelligence
-                        untuk mendeteksi objek jam.
-                    </p>
-                </div>
-
-                <div class="feature">
-                    <div style="font-size:2rem;">⚡</div>
-                    <h3>Real-Time</h3>
-                    <p>
-                        Deteksi langsung dari kamera
-                        dengan kecepatan tinggi.
-                    </p>
-                </div>
-
-                <div class="feature">
-                    <div style="font-size:2rem;">⌚</div>
-                    <h3>2 Jenis Jam</h3>
-                    <p>
-                        Mendeteksi Jam Analog
-                        dan Smartwatch otomatis.
-                    </p>
-                </div>
-
-            </div>
-
-        </div>
-
+    <div class="container">
+        <!-- Elemen video untuk menampilkan gambar langsung dari kamera laptop/HP[cite: 2] -->
+        <video id="webcam" playsinline muted></video>
+        <!-- Kanvas transparan untuk menggambar kotak deteksi di atas video kamera[cite: 2] -->
+        <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
-    <!-- Processor Canvas -->
+    <!-- Kanvas tersembunyi yang digunakan sistem untuk menyesuaikan ukuran gambar bagi AI (Jangan dihapus!)[cite: 2] -->
     <canvas id="processor" width="640" height="640" style="display:none;"></canvas>
 
-    <!-- App JS -->
+    <!-- Memanggil file logika AI kalian -->
     <script src="app.js"></script>
-
 </body>
 </html>
