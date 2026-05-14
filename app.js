@@ -2,19 +2,10 @@
 // 1. PENGATURAN PROYEK (KALIAN HANYA PERLU MENGUBAH BAGIAN INI)
 // ======================================================================
 const CONFIG = {
-    // Nama file model AI yang sudah kalian download dari Colab
-    modelPath: './best.onnx', 
-    
-    // GANTI INI dengan nama kelas kalian. 
-    // PERHATIAN: Urutannya HARUS SAMA PERSIS dengan urutan di Roboflow!
-    labels: ["jam-tangan-analog", "jam-tangan-smartwatch"], 
-    
-    // Batas keyakinan AI (0.45 = 45%). 
-    // Jika AI terlalu sering salah tebak, naikkan angkanya (misal 0.60).
-    threshold: 0.60,
-    
-    // Batas untuk menghapus kotak deteksi yang menumpuk (Biarkan saja 0.4)
-    iouThreshold: 0.4
+    modelPath: './best.onnx',
+    labels: ["jam-tangan-analog", "jam-tangan-smartwatch"],
+    threshold: 0.80,
+    iouThreshold: 0.45
 };
 
 // ======================================================================
